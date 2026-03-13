@@ -60,7 +60,7 @@ const Combobox = React.forwardRef(
         </button>
 
         {open && (
-          <div className="absolute top-full left-0 right-0 z-50 mt-1 rounded-[var(--border-radius-lg,8px)] border border-[var(--base-border,#E4E4E7)] bg-[var(--base-background,#FFF)] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-2px_rgba(0,0,0,0.05)]">
+          <div className="absolute top-full left-0 z-50 mt-1 rounded-[var(--border-radius-lg,8px)] border border-[var(--base-border,#E4E4E7)] bg-[var(--base-background,#FFF)] shadow-[0_10px_15px_-3px_rgba(0,0,0,0.10),0_4px_6px_-2px_rgba(0,0,0,0.05)] min-w-[300px]">
             {/* Search Input */}
             <div className="border-b border-input p-2">
               <div className="relative">
