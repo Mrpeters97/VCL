@@ -2,10 +2,11 @@ import { Badge } from './badge';
 import { Tooltip, TooltipTrigger, TooltipContent } from '.';
 
 const BADGE_TEXT = {
+  'variant-channel-language': 'V-C-L',
   'variant-channel': 'V-C',
   'variant': 'V',
   'channel': 'C',
-  'channel-local': 'C',
+  'channel-local': 'C-L',
 };
 
 export default function AttributeBadge({ differsOn, diffLabels }) {

@@ -11,6 +11,7 @@ import CopyAction from './CopyAction'
 import AttributeBadge from './AttributeBadge'
 
 const DIFF_LABELS = {
+  'variant-channel-language': 'This attributes differs on variant, channel, and language',
   'variant-channel': 'This attribute differs on variant and channel',
   'variant': 'This attribute differs on variant',
   'channel': 'This attribute differs on channel',
@@ -160,13 +161,13 @@ export default function ProductInformation() {
                       type="text"
                       value={getProductFieldValue('productIdentifier')}
                       onChange={(e) => handleFieldChange('productIdentifier', e.target.value)}
-                      placeholder="Enter unique product identification code"
+                      placeholder="Enter unique product identifier"
                       className="flex-1"
                       required
                     />
                     <CopyAction field="productIdentifier" onCopyConfirm={handleCopyConfirm} disabled={!getProductFieldValue('productIdentifier')} />
                     <div className="h-10 border-l border-[#E4E4E7]"></div>
-                    <AttributeBadge differsOn={productData.productIdentifier.differsOn} diffLabels={DIFF_LABELS} />
+                    <AttributeBadge differsOn="variant" diffLabels={DIFF_LABELS} />
                   </FormRow>
                 </div>
 
@@ -176,13 +177,13 @@ export default function ProductInformation() {
                       type="text"
                       value={getProductFieldValue('name')}
                       onChange={(e) => handleFieldChange('name', e.target.value)}
-                      placeholder="Enter unique product name"
+                      placeholder="Enter unique name"
                       className="flex-1"
                       required
                     />
                     <CopyAction field="name" onCopyConfirm={handleCopyConfirm} disabled={!getProductFieldValue('name')} />
                     <div className="h-10 border-l border-[#E4E4E7]"></div>
-                    <AttributeBadge differsOn={productData.name.differsOn} diffLabels={DIFF_LABELS} />
+                    <AttributeBadge differsOn="variant-channel-language" diffLabels={DIFF_LABELS} />
                   </FormRow>
                 </div>
 
@@ -195,19 +196,19 @@ export default function ProductInformation() {
                           type="text"
                           value={ean}
                           onChange={(e) => handleEanChange(index, e.target.value)}
-                          placeholder="1234567890"
+                          placeholder="Enter unique EAN"
                           className="w-full"
                           required
                         />
                       ))}
-                      <Button size="sm" variant="outline" onClick={handleAddEan}>
+                     <Button size="sm" variant="outline" onClick={handleAddEan}>
                         <span className="text-sm font-medium">+ Add EAN</span>
                       </Button>
                     </div>
                     <div className="flex items-center self-start gap-[var(--Gap-2,8px)]">
                       <CopyAction field="ean" onCopyConfirm={handleCopyConfirm} disabled={getProductFieldValue('ean').every((ean) => !ean)} />
                       <div className="h-10 border-l border-[#E4E4E7]"></div>
-                      <AttributeBadge differsOn={productData.ean.differsOn} diffLabels={DIFF_LABELS} />
+                      <AttributeBadge differsOn="variant" diffLabels={{ 'variant': 'This attributes differs on channel' }} />
                     </div>
                   </FormRow>
                 </div>
