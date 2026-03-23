@@ -49,8 +49,9 @@ export default function Toast({ message, onClose, duration = 3000, variant = 'su
 
   return (
     <div
-      className={`fixed left-1/2 top-[32px] z-50 w-[500px] -translate-x-1/2 overflow-hidden rounded-[var(--border-radius-md,6px)] ${style.borderColor} ${style.bgColor} ${style.shadowColor}`}
+      className={`fixed left-1/2 top-[32px] w-[500px] -translate-x-1/2 overflow-hidden rounded-[var(--border-radius-md,6px)] ${style.borderColor} ${style.bgColor} ${style.shadowColor}`}
       style={{
+        zIndex: 10000,
         animation: isExiting
           ? 'toast-out 0.3s cubic-bezier(0.4, 0, 1, 1) forwards'
           : 'toast-in 0.3s cubic-bezier(0, 0, 0.2, 1) forwards',

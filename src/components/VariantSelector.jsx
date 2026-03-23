@@ -1,221 +1,213 @@
-import { useProduct } from '../context/ProductContext'
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from './ui/select'
+import React, { useState, useRef, useEffect } from 'react'
+import { useProduct } from '../context/ProductContext2'
+import { useScroll } from '../context/ScrollContext'
 import { Combobox } from './ui/combobox'
+import { Button } from './ui/button'
 
-// Channel list
-const CHANNELS = [
-  'Belsimpel.nl',
-  'Gomibo.hu',
-  'Gomibo.pl',
-  'Gomibo.be',
-  'Gomibo.ie',
-  'Gomibo.pt',
-  'Gomibo.bg',
-  'Gomibo.it',
-  'Gomibo.ro',
-  'Gomibo.cy',
-  'Gomibo.hr',
-  'Gomibo.si',
-  'Gomibo.dk',
-  'Gomibo.lv',
-  'Gomibo.sk',
-  'Gomibo.de',
-  'Gomibo.lt',
-  'Gomibo.es',
-  'Gomibo.ee',
-  'Gomibo.lu',
-  'Gomibo.cz',
-  'Gomibo.fi',
-  'Gomibo.mt',
-  'Gomibo.co.uk',
-  'Gomibo.fr',
-  'Gomibo.no',
-  'Gomibo.se',
-  'Gomibo.gr',
-  'Gomibo.at',
-  'Gomibo.ch',
+const VARIANT_OPTIONS = [
+  { label: 'Monthly terminable - 1 GB', value: 'Monthly terminable - 1 GB' },
+  { label: 'Monthly terminable - Unlimited', value: 'Monthly terminable - Unlimited' },
+  { label: '1 year terminable - 1 GB', value: '1 year terminable - 1 GB' },
+  { label: '1 year terminable - Unlimited', value: '1 year terminable - Unlimited' },
+  { label: '2 years terminable - 1 GB', value: '2 years terminable - 1 GB' },
+  { label: '2 years terminable - Unlimited', value: '2 years terminable - Unlimited' },
 ]
 
-// Language availability mapping
-const LANGUAGE_AVAILABILITY = {
-  'English': ['Belsimpel.nl', 'Gomibo.hu', 'Gomibo.pl', 'Gomibo.be', 'Gomibo.ie', 'Gomibo.pt', 'Gomibo.bg', 'Gomibo.it', 'Gomibo.ro', 'Gomibo.cy', 'Gomibo.hr', 'Gomibo.si', 'Gomibo.dk', 'Gomibo.lv', 'Gomibo.sk', 'Gomibo.de', 'Gomibo.lt', 'Gomibo.es', 'Gomibo.ee', 'Gomibo.lu', 'Gomibo.cz', 'Gomibo.fi', 'Gomibo.mt', 'Gomibo.co.uk', 'Gomibo.fr', 'Gomibo.no', 'Gomibo.se', 'Gomibo.gr', 'Gomibo.at', 'Gomibo.ch'],
-  'Dutch': ['Belsimpel.nl', 'Gomibo.be'],
-  'German': ['Gomibo.de', 'Gomibo.at', 'Gomibo.ch', 'Gomibo.lu'],
-  'French': ['Gomibo.fr', 'Gomibo.be', 'Gomibo.ch', 'Gomibo.lu'],
-  'Italian': ['Gomibo.it', 'Gomibo.ch'],
-}
-
-const LANGUAGES = ['English', 'Dutch', 'German', 'French', 'Italian']
-
-const VARIANTS = [
-  { value: '128-black', label: '128 Black' },
-  { value: '128-white', label: '128 White' },
-  { value: '128-silver', label: '128 Silver' },
-  { value: '128-gold', label: '128 Gold' },
-  { value: '256-black', label: '256 Black' },
-  { value: '256-white', label: '256 White' },
-  { value: '256-silver', label: '256 Silver' },
-  { value: '256-gold', label: '256 Gold' },
-  { value: '512-black', label: '512 Black' },
-  { value: '512-white', label: '512 White' },
+const LANGUAGE_OPTIONS = [
+  { label: 'English', value: 'English' },
+  { label: 'Dutch', value: 'Dutch' },
 ]
 
-function BoxHeader() {
-  return (
-    <div className="flex flex-col items-start gap-1 flex-1">
-      <h3 className="text-lg font-semibold leading-normal text-foreground">
-        Select variant + channel + language
-      </h3>
-      <p className="text-sm leading-normal text-muted-foreground">
-        Select the product variant + channel + language combination to adjust the specific product information.
-      </p>
-    </div>
-  )
-}
+// --- DESIGN SYSTEM DOCUMENTATION ---
+// All section titles (h2):
+// color: var(--base-foreground, #18181B);
+// font-family: var(--typography-font-family-font-sans, Inter);
+// font-weight: var(--font-weight-semibold, 600);
+// line-height: var(--typography-base-sizes-large-line-height, 28px);
+//
+// Description text:
+// color: var(--base-muted-foreground, #71717A);
+// font-family: var(--typography-font-family-font-sans, Inter);
+// font-weight: var(--font-weight-normal, 400);
+// font-size: 14px;
+// line-height: 20px;
+//
+// Labels (inputs/selects):
+// color: var(--base-muted-foreground, #71717A);
+// font-family: var(--typography-font-family-font-sans, Inter);
+// font-weight: var(--font-weight-normal, 400);
+// font-size: 14px;
+// line-height: 20px;
 
 export default function VariantSelector() {
-  const {
-    variant,
-    channel,
-    language,
-    handleVariantChange,
-    handleChannelChange,
-    handleLanguageChange,
-  } = useProduct()
+  const { variant, handleVariantChange, language, handleLanguageChange } = useProduct()
+  const { scrollY } = useScroll()
+  const [selectorWidth, setSelectorWidth] = useState(null)
+  const containerRef = useRef(null)
+  const selectorRef = useRef(null)
 
-  // Get available languages for current channel
-  const getAvailableLanguagesForChannel = () => {
-    return LANGUAGES.filter(lang => LANGUAGE_AVAILABILITY[lang].includes(channel))
-  }
+  // Animation progress: 0 (no scroll) to 1 (>= 60px scroll)
+  const progress = Math.min(scrollY / 60, 1)
+  
+  // When sticky, position is exactly where the PageHeader ends (71px)
+  const stickyTop = 71
+  
+  // Selector becomes sticky when the header section would scroll past 71px mark
+  // Header section height: ~110px (h2 + p + button with margins)
+  // Initial position from top of page: 132px (marginTop in App.jsx)
+  // So top of selector = 132 + 110 = 242px
+  // Sticky triggers when scrollY reaches (242 - 71) = 171px, but earlier = 141px
+  const isSticky = scrollY >= 141
 
-  // Get available channels for current language
-  const getAvailableChannelsForLanguage = () => {
-    return LANGUAGE_AVAILABILITY[language]
-  }
-
-  // Create grouped options for language select
-  const getLanguageOptions = () => {
-    const available = getAvailableLanguagesForChannel()
-    const unavailable = LANGUAGES.filter(lang => !available.includes(lang))
-
-    return [
-      {
-        label: 'Available on this channel',
-        items: available.map(lang => ({ value: lang, label: lang }))
-      },
-      ...(unavailable.length > 0 ? [{
-        label: 'Unavailable on this channel',
-        items: unavailable.map(lang => ({ value: lang, label: lang, disabled: true }))
-      }] : [])
-    ]
-  }
-
-  // Create grouped options for channel combobox
-  const getChannelOptions = () => {
-    const available = getAvailableChannelsForLanguage()
-    const unavailable = CHANNELS.filter(ch => !available.includes(ch))
-
-    return [
-      {
-        label: 'Available in this language',
-        items: available.map(ch => ({ value: ch, label: ch }))
-      },
-      ...(unavailable.length > 0 ? [{
-        label: 'Unavailable in this language',
-        items: unavailable.map(ch => ({ value: ch, label: ch, disabled: true }))
-      }] : [])
-    ]
-  }
-
-  // Ensure selected language is available for channel, otherwise switch to default
-  const handleChannelChangeWithValidation = (newChannel) => {
-    handleChannelChange(newChannel)
-    const availableLanguages = LANGUAGES.filter(lang => LANGUAGE_AVAILABILITY[lang].includes(newChannel))
-    if (!availableLanguages.includes(language)) {
-      handleLanguageChange('English')
+  useEffect(() => {
+    // Measure the actual width of the selector container
+    const measureWidth = () => {
+      if (selectorRef.current) {
+        setSelectorWidth(selectorRef.current.offsetWidth)
+      }
     }
-  }
 
-  // Ensure selected channel is available for language, otherwise switch to first available
-  const handleLanguageChangeWithValidation = (newLanguage) => {
-    handleLanguageChange(newLanguage)
-    const availableChannels = LANGUAGE_AVAILABILITY[newLanguage]
-    if (!availableChannels.includes(channel)) {
-      handleChannelChange(availableChannels[0])
+    // Initial measurement
+    measureWidth()
+
+    // Measure on window resize
+    window.addEventListener('resize', measureWidth)
+
+    return () => {
+      window.removeEventListener('resize', measureWidth)
     }
-  }
-
-  const channelOptions = CHANNELS.map(ch => ({ value: ch, label: ch }))
-  const languageOptions = LANGUAGES.map(lang => ({ value: lang, label: lang }))
+  }, [])
 
   return (
-    <div className="flex flex-col items-center w-full">
-      <div className="w-[816px] flex flex-col items-start gap-3">
-        <BoxHeader />
-        <div className="w-full bg-[var(--base-background,#FFF)] rounded-[var(--border-radius-md,6px)] border border-[var(--base-border,#E4E4E7)] py-3 px-6">
-          {/* Selectors Container */}
-          <div className="flex items-center gap-0">
-            {/* Variant Selector */}
-            <div className="flex-[5.2] min-w-0">
-              <label className="block text-xs font-medium text-foreground mb-2">
-                Variant
-              </label>
-              <Combobox
-                options={VARIANTS.map(v => ({ value: v.value, label: v.label }))}
-                value={variant}
-                onValueChange={handleVariantChange}
-                placeholder="Select variant"
-              />
-            </div>
+    <div className="w-full max-w-full">
+      {/* Header section */}
+      <div className="flex items-center justify-between" style={{ marginBottom: '24px', display: isSticky ? 'none' : 'flex' }}>
+        <div>
+          <h2
+            style={{
+              color: 'var(--base-foreground, #18181B)',
+              fontFamily: 'var(--typography-font-family-font-sans, Inter)',
+              fontSize: '18px',
+              fontWeight: 'var(--font-weight-semibold, 600)',
+              lineHeight: 'var(--typography-base-sizes-large-line-height, 28px)',
+              margin: 0,
+            }}
+          >
+            Select variant + language
+          </h2>
+          <p
+            style={{
+              color: 'var(--base-muted-foreground, #71717A)',
+              fontFamily: 'var(--typography-font-family-font-sans, Inter)',
+              fontSize: '14px',
+              fontWeight: 'var(--font-weight-normal, 400)',
+              lineHeight: 'var(--typography-base-sizes-small-line-height, 20px)',
+              margin: 0,
+              marginTop: '4px',
+            }}
+          >
+            Select the product variant + language combination to adjust the specific product information.
+          </p>
+        </div>
+        <Button
+          variant="outline"
+          className="flex items-center gap-2 h-9 px-4 border-gray-200"
+          style={{
+            color: 'var(--base-foreground, #18181B)',
+            fontFamily: 'var(--typography-font-family-font-sans, Inter)',
+            fontSize: '14px',
+            fontWeight: 'var(--font-weight-normal, 400)',
+            lineHeight: 'var(--typography-base-sizes-small-line-height, 20px)',
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2.33334 4.08333H11.6667V5.25H2.33334V4.08333ZM4.08334 6.41667H9.91668V7.58333H4.08334V6.41667ZM5.83334 8.75H8.16668V9.91667H5.83334V8.75Z" fill="black"/>
+          </svg>
+          Filter
+        </Button>
+      </div>
 
-            {/* divider */}
-            <div className="h-14 border-l border-[#E4E4E7] mx-6"></div>
+      {/* Selectors container */}
+      <div
+        ref={selectorRef}
+        style={{
+          display: 'flex',
+          padding: 'var(--Gap-3, 12px) var(--Gap-6, 24px)',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          borderRadius: isSticky ? '0px 0px 6px 6px' : '6px',
+          border: '1px solid var(--base-border, #E4E4E7)',
+          borderTop: isSticky ? 'none' : '1px solid var(--base-border, #E4E4E7)',
+          background: '#FFFFFF',
+          gap: '24px',
+          position: isSticky ? 'fixed' : 'relative',
+          top: isSticky ? `${stickyTop}px` : 'auto',
+          left: isSticky ? '288px' : 'auto',
+          right: isSticky ? '0' : 'auto',
+          width: isSticky && selectorWidth ? `${selectorWidth}px` : 'auto',
+          marginRight: isSticky ? '32px' : 'auto',
+          zIndex: isSticky ? 9997 : 1000,
+          boxShadow: isSticky ? '0 4px 4px 0 rgba(0, 0, 0, 0.10)' : 'none',
+          opacity: isSticky ? 1 : 1,
+          transform: isSticky ? 'translateY(0)' : 'translateY(0)',
+          transition: 'position 0.3s cubic-bezier(0.4, 0, 0.2, 1), top 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-radius 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-top 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+        }}
+      >
+        {/* Variant Selector */}
+        <div className="flex-1 flex flex-col gap-2">
+          <label
+            style={{
+              overflow: 'hidden',
+              color: 'var(--base-sidebar-foreground, #3F3F46)',
+              textOverflow: 'ellipsis',
+              fontFamily: 'var(--typography-font-family-font-sans, Inter)',
+              fontSize: '14px',
+              fontWeight: 'var(--font-weight-medium, 500)',
+              lineHeight: 'var(--typography-base-sizes-small-line-height, 20px)',
+            }}
+          >
+            Variant
+          </label>
+          <Combobox
+            options={VARIANT_OPTIONS}
+            value={variant}
+            onValueChange={handleVariantChange}
+            placeholder="Monthly terminable - 1 GB"
+            className="bg-white border-gray-200 h-10 shadow-none"
+          />
+        </div>
 
-            {/* Channel Combobox */}
-            <div className="flex-[2.3] min-w-0">
-              <label className="block text-xs font-medium text-foreground mb-2">
-                Channel
-              </label>
-              <Combobox
-                options={channelOptions}
-                value={channel}
-                onValueChange={handleChannelChangeWithValidation}
-                placeholder="Select channel"
-                groupedOptions={getChannelOptions()}
-              />
-            </div>
+        {/* Divider */}
+        <div
+          style={{
+            width: '1px',
+            height: '65px',
+            background: 'var(--base-border, #E4E4E7)',
+          }}
+        />
 
-            {/* divider */}
-            <div className="h-14 border-l border-[#E4E4E7] mx-6"></div>
-
-            {/* Language Selector */}
-            <div className="flex-[2.5] min-w-0">
-              <label className="block text-xs font-medium text-foreground mb-2">
-                Language
-              </label>
-              <Select value={language} onValueChange={handleLanguageChangeWithValidation}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select language" />
-                </SelectTrigger>
-                <SelectContent>
-                  {getLanguageOptions().map(group => (
-                    <SelectGroup key={group.label}>
-                      <SelectLabel>{group.label}</SelectLabel>
-                      {group.items.map(item => (
-                        <SelectItem
-                          key={item.value}
-                          value={item.value}
-                          disabled={item.disabled}
-                        >
-                          {item.label}
-                        </SelectItem>
-                      ))}
-                    </SelectGroup>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
+        {/* Language Selector */}
+        <div className="flex-0 flex flex-col gap-2" style={{ minWidth: '180px' }}>
+          <label
+            style={{
+              overflow: 'hidden',
+              color: 'var(--base-sidebar-foreground, #3F3F46)',
+              textOverflow: 'ellipsis',
+              fontFamily: 'var(--typography-font-family-font-sans, Inter)',
+              fontSize: '14px',
+              fontWeight: 'var(--font-weight-medium, 500)',
+              lineHeight: 'var(--typography-base-sizes-small-line-height, 20px)',
+            }}
+          >
+            Language
+          </label>
+          <Combobox
+            options={LANGUAGE_OPTIONS}
+            value={language}
+            onValueChange={handleLanguageChange}
+            placeholder="English"
+            className="bg-white border-gray-200 h-10 shadow-none"
+          />
         </div>
       </div>
     </div>

@@ -13,6 +13,7 @@ import AttributeBadge from './AttributeBadge'
 const DIFF_LABELS = {
   'variant-channel-language': 'This attributes differs on variant, channel, and language',
   'variant-channel': 'This attribute differs on variant and channel',
+  'variant-language': 'This attribute differs on variant and language',
   'variant': 'This attribute differs on variant',
   'channel': 'This attribute differs on channel',
   'channel-local': 'This attribute differs on channel and is local',
@@ -36,6 +37,13 @@ const BRAND_OPTIONS = [
   { value: 'honor', label: 'Honor' },
 ]
 
+const PROVIDER_OPTIONS = [
+  { value: 'vodafone', label: 'Vodafone' },
+  { value: 'kpn', label: 'KPN' },
+  { value: 'tmobile', label: 'T-Mobile' },
+  { value: 'other', label: 'Other' },
+]
+
 export default function ProductInformation() {
   const { productData, updateProductField, getProductFieldValue, markFieldAsCopied, variant, channel, language } = useProduct()
   const [showToast, setShowToast] = useState(false)
@@ -44,6 +52,86 @@ export default function ProductInformation() {
   const [showSystemNotification, setShowSystemNotification] = useState(false)
   const [systemNotificationMessage, setSystemNotificationMessage] = useState('')
   const prevValuesRef = useRef({ variant, channel, language })
+
+  // Helper function to generate name value
+  const getGeneratedName = () => {
+    if (!variant) return ''
+    
+    // Remove hyphens from variant name
+    const cleanVariant = variant.replace(/ - /g, ' ')
+    
+    // Translate to Dutch if needed
+    if (language === 'Dutch') {
+      const variantMap = {
+        'Monthly terminable 1 GB': 'Maandelijks opzegbaar 1 GB',
+        'Monthly terminable 5 GB': 'Maandelijks opzegbaar 5 GB',
+        'Monthly terminable 10 GB': 'Maandelijks opzegbaar 10 GB',
+        '2 year terminable 1 GB': '2 jaar opzegbaar 1 GB',
+        '2 year terminable 5 GB': '2 jaar opzegbaar 5 GB',
+        '2 year terminable 10 GB': '2 jaar opzegbaar 10 GB',
+      }
+      return `KPN ${variantMap[cleanVariant] || cleanVariant}`
+    }
+    
+    // English
+    return `KPN ${cleanVariant}`
+  }
+
+  // Auto-fill name when variant or language changes and name is empty
+  useEffect(() => {
+    if (variant && language && !getProductFieldValue('name')) {
+      updateProductField('name', getGeneratedName())
+    }
+  }, [variant, language])
+
+  // Auto-fill default values when variant or channel changes
+  useEffect(() => {
+    // Generate Product Identifier based on variant
+    if (variant && !getProductFieldValue('productIdentifier')) {
+      const variantMap = {
+        'Monthly terminable - 1 GB': '123456ABCD',
+        'Monthly terminable - 5 GB': '123456ABCE',
+        'Monthly terminable - 10 GB': '123456ABCF',
+        '2 year terminable - 1 GB': '123456ABCG',
+        '2 year terminable - 5 GB': '123456ABCH',
+        '2 year terminable - 10 GB': '123456ABCI',
+      }
+      updateProductField('productIdentifier', variantMap[variant] || '')
+    }
+
+    // Set Provider to KPN if empty
+    if (!getProductFieldValue('provider')) {
+      updateProductField('provider', 'kpn')
+    }
+
+    // Set Valid Period dates if empty
+    if (!getProductFieldValue('validFrom')) {
+      updateProductField('validFrom', '2026-01-01')
+    }
+    if (!getProductFieldValue('validUntil')) {
+      updateProductField('validUntil', '2026-03-31')
+    }
+
+    // Set Customer Segment to Consumer if empty
+    if (!getProductFieldValue('customerSegment')) {
+      updateProductField('customerSegment', 'consumer')
+    }
+
+    // Set Activation Type to "New number" if empty
+    if (!getProductFieldValue('activationType')) {
+      updateProductField('activationType', 'new-number')
+    }
+
+    // Set SIM Type to "Physical SIM" if empty
+    if (!getProductFieldValue('simType')) {
+      updateProductField('simType', 'physical-sim')
+    }
+
+    // Set Bundle Type to "SIM only" if empty
+    if (!getProductFieldValue('bundleType')) {
+      updateProductField('bundleType', 'sim-only')
+    }
+  }, [variant, channel])
 
   // Detect changes in variant, channel, or language
   useEffect(() => {
@@ -156,77 +244,98 @@ export default function ProductInformation() {
                 <h2 className="text-xl font-semibold">1. Product information</h2>
 
                 <div className="w-full">
-                  <FormRow label="Product Identifier" required>
-                    <Input
-                      type="text"
-                      value={getProductFieldValue('productIdentifier')}
-                      onChange={(e) => handleFieldChange('productIdentifier', e.target.value)}
-                      placeholder="Enter unique product identifier"
-                      className="flex-1"
-                      required
-                    />
-                    <CopyAction field="productIdentifier" onCopyConfirm={handleCopyConfirm} disabled={!getProductFieldValue('productIdentifier')} />
-                    <div className="h-10 border-l border-[#E4E4E7]"></div>
-                    <AttributeBadge differsOn="variant" diffLabels={DIFF_LABELS} />
-                  </FormRow>
-                </div>
-
-                <div className="w-full">
                   <FormRow label="Name" required>
-                    <Input
-                      type="text"
-                      value={getProductFieldValue('name')}
-                      onChange={(e) => handleFieldChange('name', e.target.value)}
-                      placeholder="Enter unique name"
-                      className="flex-1"
-                      required
-                    />
-                    <CopyAction field="name" onCopyConfirm={handleCopyConfirm} disabled={!getProductFieldValue('name')} />
-                    <div className="h-10 border-l border-[#E4E4E7]"></div>
-                    <AttributeBadge differsOn="variant-channel-language" diffLabels={DIFF_LABELS} />
-                  </FormRow>
-                </div>
-
-                <div className="w-full">
-                  <FormRow label="EAN" required>
-                    <div className="flex-1 flex flex-col items-start gap-2">
-                      {getProductFieldValue('ean').map((ean, index) => (
-                        <Input
-                          key={index}
-                          type="text"
-                          value={ean}
-                          onChange={(e) => handleEanChange(index, e.target.value)}
-                          placeholder="Enter unique EAN"
-                          className="w-full"
-                          required
-                        />
-                      ))}
-                     <Button size="sm" variant="outline" onClick={handleAddEan}>
-                        <span className="text-sm font-medium">+ Add EAN</span>
-                      </Button>
-                    </div>
-                    <div className="flex items-center self-start gap-[var(--Gap-2,8px)]">
-                      <CopyAction field="ean" onCopyConfirm={handleCopyConfirm} disabled={getProductFieldValue('ean').every((ean) => !ean)} />
-                      <div className="h-10 border-l border-[#E4E4E7]"></div>
-                      <AttributeBadge differsOn="variant" diffLabels={{ 'variant': 'This attributes differs on channel' }} />
-                    </div>
-                  </FormRow>
-                </div>
-
-                <div className="w-full">
-                  <FormRow label="Brand" required>
-                    <div className="flex-1">
-                      <Combobox
-                        options={BRAND_OPTIONS}
-                        value={getProductFieldValue('brand')}
-                        onValueChange={(value) => handleFieldChange('brand', value)}
-                        placeholder="Select a brand"
+                    <div className="flex-1 flex items-center gap-3 h-10">
+                      <Input
+                        type="text"
+                        value={getProductFieldValue('name')}
+                        onChange={(e) => handleFieldChange('name', e.target.value)}
+                        placeholder="Unique product variant name"
+                        className="flex-1 h-10"
+                        required
+                        style={getProductFieldValue('name') ? {
+                          overflow: 'hidden',
+                          color: 'var(--base-foreground, #18181B)',
+                          textOverflow: 'ellipsis',
+                          fontFamily: 'var(--typography-font-family-font-sans, Inter)',
+                          fontSize: 'var(--typography-base-sizes-small-font-size, 14px)',
+                          fontStyle: 'normal',
+                          fontWeight: 'var(--font-weight-normal, 400)',
+                          lineHeight: 'var(--typography-base-sizes-small-line-height, 20px)',
+                        } : {}}
                       />
+                      <div className="flex items-center h-10 gap-[var(--Gap-2,8px)] shrink-0">
+                        <CopyAction field="name" onCopyConfirm={handleCopyConfirm} disabled={!getProductFieldValue('name')} />
+                        <div className="h-10 border-l border-[#E4E4E7]"></div>
+                        <AttributeBadge differsOn="variant-language" diffLabels={DIFF_LABELS} />
+                      </div>
                     </div>
-                    <div className="invisible flex items-center gap-[var(--Gap-2,8px)]" aria-hidden="true">
-                      <div className="h-10 w-10"></div> {/* Placeholder for Copy Button */}
-                      <div className="h-10 border-l border-[#E4E4E7]"></div>
-                      <div className="w-12 shrink-0"></div> {/* Placeholder for Badge */}
+                  </FormRow>
+                </div>
+
+                <div className="w-full">
+                  <FormRow label="Product Identifier">
+                    <div className="flex-1 flex items-center gap-3 h-10">
+                      <Input
+                        type="text"
+                        value={getProductFieldValue('productIdentifier')}
+                        onChange={(e) => handleFieldChange('productIdentifier', e.target.value)}
+                        placeholder="Unique product identification code"
+                        className="flex-1 h-10"
+                      />
+                      <div className="flex items-center h-10 gap-[var(--Gap-2,8px)] shrink-0">
+                        <CopyAction field="productIdentifier" onCopyConfirm={handleCopyConfirm} disabled={!getProductFieldValue('productIdentifier')} />
+                        <div className="h-10 border-l border-[#E4E4E7]"></div>
+                        <AttributeBadge differsOn="variant" diffLabels={DIFF_LABELS} />
+                      </div>
+                    </div>
+                  </FormRow>
+                </div>
+
+                <div className="w-full">
+                  <FormRow label="Provider">
+                    <div className="flex-1 flex items-center gap-3 h-10">
+                      <div className="flex-1 h-10">
+                        <Combobox
+                          options={PROVIDER_OPTIONS}
+                          value={getProductFieldValue('provider')}
+                          onValueChange={(value) => handleFieldChange('provider', value)}
+                          placeholder="Choose provider"
+                        />
+                      </div>
+                      <div className="flex items-center h-10 gap-[var(--Gap-2,8px)] shrink-0">
+                        <div className="h-10 w-10"></div>
+                        <div className="h-10 w-px"></div>
+                        <div className="w-12 shrink-0"></div>
+                      </div>
+                    </div>
+                  </FormRow>
+                </div>
+
+                <div className="w-full">
+                  <FormRow label="Valid period">
+                    <div className="flex-1 flex items-center gap-3 h-10">
+                      <div className="flex-1 flex gap-3 items-center h-10">
+                        <Input
+                          type="date"
+                          value={getProductFieldValue('validFrom') || ''}
+                          onChange={(e) => handleFieldChange('validFrom', e.target.value)}
+                          placeholder="From"
+                          className="flex-1 h-10"
+                        />
+                        <Input
+                          type="date"
+                          value={getProductFieldValue('validUntil') || ''}
+                          onChange={(e) => handleFieldChange('validUntil', e.target.value)}
+                          placeholder="Until"
+                          className="flex-1 h-10"
+                        />
+                      </div>
+                      <div className="flex items-center h-10 gap-[var(--Gap-2,8px)] shrink-0">
+                        <div className="h-10 w-10"></div>
+                        <div className="h-10 w-px"></div>
+                        <div className="h-10 w-12 shrink-0"></div>
+                      </div>
                     </div>
                   </FormRow>
                 </div>

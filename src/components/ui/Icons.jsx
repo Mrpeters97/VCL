@@ -22,3 +22,11 @@ export const ToastIcon = () => (
     </defs>
   </svg>
 );
+
+export const VerticalDotsIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="3" height="12" viewBox="0 0 3 12" fill="none" className="pointer-events-none">
+    <path fillRule="evenodd" clipRule="evenodd" d="M0 6C0 5.26362 0.596954 4.66667 1.33333 4.66667C2.06971 4.66667 2.66667 5.26362 2.66667 6C2.66667 6.73638 2.06971 7.33333 1.33333 7.33333C0.596954 7.33333 0 6.73638 0 6Z" fill="black"/>
+    <path fillRule="evenodd" clipRule="evenodd" d="M0 1.33333C0 0.596954 0.596954 0 1.33333 0C2.06971 0 2.66667 0.596954 2.66667 1.33333C2.66667 2.06971 2.06971 2.66667 1.33333 2.66667C0.596954 2.66667 0 2.06971 0 1.33333Z" fill="black"/>
+    <path fillRule="evenodd" clipRule="evenodd" d="M0 10.6667C0 9.93029 0.596954 9.33333 1.33333 9.33333C2.06971 9.33333 2.66667 9.93029 2.66667 10.6667C2.66667 11.403 2.06971 12 1.33333 12C0.596954 12 0 11.403 0 10.6667Z" fill="black"/>
+  </svg>
+);
