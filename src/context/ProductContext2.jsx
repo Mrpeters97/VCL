@@ -87,7 +87,7 @@ export function ProductProvider({ children }) {
         fieldData.variantChannelValues = {}
       }
       
-      const VARIANTS = ['128-black', '128-white', '128-silver', '128-gold', '256-black', '256-white', '256-silver', '256-gold', '512-black', '512-white']
+      const VARIANTS = ['Monthly terminable - 1 GB', 'Monthly terminable - Unlimited', '1 year terminable - 1 GB', '1 year terminable - Unlimited', '2 years terminable - 1 GB', '2 years terminable - Unlimited']
       const CHANNELS = ['Belsimpel.nl', 'Gomibo.hu', 'Gomibo.pl', 'Gomibo.be', 'Gomibo.ie', 'Gomibo.pt', 'Gomibo.bg', 'Gomibo.it', 'Gomibo.ro', 'Gomibo.cy', 'Gomibo.hr', 'Gomibo.si', 'Gomibo.dk', 'Gomibo.lv', 'Gomibo.sk', 'Gomibo.de', 'Gomibo.lt', 'Gomibo.es', 'Gomibo.ee', 'Gomibo.lu', 'Gomibo.cz', 'Gomibo.fi', 'Gomibo.mt', 'Gomibo.co.uk', 'Gomibo.fr', 'Gomibo.no', 'Gomibo.se', 'Gomibo.gr', 'Gomibo.at', 'Gomibo.ch']
       
       const keysToUpdate = []

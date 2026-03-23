@@ -103,9 +103,9 @@ export const ProductProvider = ({ children }) => {
       }
       
       const VARIANTS = [
-        '128-black', '128-white', '128-silver', '128-gold',
-        '256-black', '256-white', '256-silver', '256-gold',
-        '512-black', '512-white',
+        'Monthly terminable - 1 GB', 'Monthly terminable - Unlimited',
+        '1 year terminable - 1 GB', '1 year terminable - Unlimited',
+        '2 years terminable - 1 GB', '2 years terminable - Unlimited',
       ]
       
       const CHANNELS = [

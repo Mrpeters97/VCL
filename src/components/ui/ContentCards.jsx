@@ -362,9 +362,9 @@ export default function ProductInformation() {
 
   const getCopyModeMessage = (mode) => {
     const messages = {
-      'variants': 'Values successfully copied to all variants in this channel',
-      'channels': 'Values successfully copied to all channels for this variant',
-      'all': 'Values successfully copied to all variants and channels'
+      'variants': 'Values successfully copied to all variants',
+      'channels': 'Values successfully copied to all variants',
+      'all': 'Values successfully copied to all variants'
     }
     return messages[mode] || 'Values successfully copied'
   }
